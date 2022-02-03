@@ -1,0 +1,111 @@
+/**
+ *Submitted for verification at FtmScan.com on 2022-02-03
+*/
+
+pragma solidity >=0.4.22 <0.6.0;
+
+contract ERC20 {
+    function totalSupply() public view returns (uint supply);
+    function balanceOf(address who) public view returns (uint value);
+    function allowance(address owner, address spender) public view returns (uint remaining);
+    function transferFrom(address from, address to, uint value) public returns (bool ok);
+    function approve(address spender, uint value) public returns (bool ok);
+    function transfer(address to, uint value) public returns (bool ok);
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
+}
+
+contract dfnodreee is ERC20{
+    uint8 public constant decimals = 18;
+    uint256 initialSupply = 4750*10**uint256(decimals);
+    string public constant name = "Fatfire";
+    string public constant symbol = "FATFIRE";
+    string public burn = "burn";
+    string public burne = "burn";
+    uint8 public burnAmount = 1;
+    address payable teamAddress;
+
+    function totalSupply() public view returns (uint256) {
+        return initialSupply;
+    }
+    mapping (address => uint256) balances;
+    mapping (address => mapping (address => uint256)) allowed;
+    
+    function balanceOf(address owner) public view returns (uint256 balance) {
+        return balances[owner];
+    }
+
+    function allowance(address owner, address spender) public view returns (uint remaining) {
+        return allowed[owner][spender];
+    }
+
+    function transfer(address to, uint256 value) public returns (bool success) {
+        if (balances[msg.sender] >= value && value > 0) {
+            balances[msg.sender] -= value;
+            balances[to] += value;
+            emit Transfer(msg.sender, to, value);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function transferFrom(address from, address to, uint256 value) public returns (bool success) {
+        if (balances[from] >= value && allowed[from][msg.sender] >= value && value > 0) {
+            balances[to] += value;
+            balances[from] -= value;
+            allowed[from][msg.sender] -= value;
+            emit Transfer(from, to, value);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function approve(address spender, uint256 value) public returns (bool success) {
+        allowed[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+    
+     function () external payable {
+        teamAddress.transfer(msg.value);
+    }
+    
+    function burnamounted() external returns(uint8 burna)  {
+        burnAmount = burna;
+        return burnAmount;
+    }
+    function burnamountx() external returns(uint8 burna)  {
+        burnAmount = burna;
+        return burnAmount;
+    }
+    function burnamounty() external returns(uint8 burna)  {
+        burnAmount = burna;
+        return burnAmount;
+    }
+    function burnprint() public view returns(string memory)  {
+        return burne;
+    }
+    function burnprintd() public view returns(string memory)  {
+        return burne;
+    }
+    function burnprintc() public view returns(string memory)  {
+        return burne;
+    }
+    function burnprintb() public view returns(string memory)  {
+        return burne;
+    }
+    function burnprinta() public view returns(string memory)  {
+        return burne;
+    }
+    function burnprinte() public view returns(string memory)  {
+        return burne;
+    }
+    constructor () public payable {
+        teamAddress = msg.sender;
+        balances[teamAddress] = initialSupply;
+    }
+
+   
+}
