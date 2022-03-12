@@ -14296,3 +14296,6 @@
 {"address": "0x64304aa10d1bc1c40120f637fe502601b794df28", "name": "ERC721", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/11/2022"}
 {"address": "0x04a224936E0208426c721e433a583569237933C1", "name": "Treasury", "compiler": "0.6.12", "balance": "0 FTM", "txcount": 5, "settings": "", "date": "3/11/2022"}
 {"address": "0x1972aeb1b3fa49179ec24a1b35178fc3997a6c90", "name": "TestGhostToken", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 3, "settings": "-", "date": "3/11/2022"}
+{"address": "0xAe6D062D1702d978244b7c8f29b4BCca1E35E440", "name": "Zap", "compiler": "0.8.4", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/12/2022"}
+{"address": "0x0BAe2c806fAC0045f2F904A590fFfAc8A4D43450", "name": "VotingSnapshot", "compiler": "0.8.11", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/12/2022"}
+{"address": "0x9eCde28e7cdC0A90b0F2Bd96026bEb2bE68261E9", "name": "VoterProxy", "compiler": "0.8.11", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/12/2022"}
