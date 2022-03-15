@@ -14837,3 +14837,6 @@
 {"address": "0xaae2a95c6d1ae173642220ee9328cfcfea169e95", "name": "ReaperAutoCompoundSolidexFarmer", "compiler": "0.8.11", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/14/2022"}
 {"address": "0x3869bdC6B94FDEaD9E17208a0ef53880a96A8F48", "name": "ProtocolOwnedDEXLiquidity", "compiler": "0.7.6", "balance": "0 FTM", "txcount": 2, "settings": "", "date": "3/14/2022"}
 {"address": "0x5D49B4dfdc2f86CB7d8D2EFffe31a9B3c47Cc644", "name": "TombFtmBeefyVault", "compiler": "0.6.12", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/14/2022"}
+{"address": "0xc9de5704e194239d5b28fd72f7b9d5ed3a6a3f9e", "name": "pbCatV1", "compiler": "0.8.10", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/15/2022"}
+{"address": "0x51a38084710b414a10b830ff5a42e03140bfc611", "name": "iSHARE", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 15, "settings": "-", "date": "3/15/2022"}
+{"address": "0xa1883e989eb0a431684a67cb08eb0469f674b4b6", "name": "abCatV1", "compiler": "0.8.10", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "3/15/2022"}
