@@ -21437,3 +21437,7 @@
 {"address": "0x58931005221bbeeedd71d01722c63de004f37a6d", "name": "IGainYearnIRS", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 4, "settings": "", "date": "5/10/2022"}
 {"address": "0x3e58b3d4cae064a6e76a6c4fea3abd6692d10437", "name": "ERC20Mintable", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 0, "settings": "", "date": "5/10/2022"}
 {"address": "0x36df602F38D0011b3E6A77031A356073389c8d99", "name": "TokenFactory", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/10/2022"}
+{"address": "0x47696F024BFfeAC60E5004F806aE3ea9F7736a42", "name": "MizuV1", "compiler": "0.6.12", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/11/2022"}
+{"address": "0xf8beb5c479a9B58F581076697BBCE83bAADE90C7", "name": "mSpellReporterManual", "compiler": "0.8.10", "balance": "0 FTM", "txcount": 2, "settings": "", "date": "5/11/2022"}
+{"address": "0x580653e2a47bf155231c213ec1a5e157784eea69", "name": "ConquerorItemLogicBeta", "compiler": "0.8.13", "balance": "0 FTM", "txcount": 3, "settings": "", "date": "5/11/2022"}
+{"address": "0x34328d92527b6471b6aae93e8877b3a90e50ed43", "name": "LCELBeta", "compiler": "0.8.13", "balance": "0 FTM", "txcount": 3, "settings": "", "date": "5/11/2022"}
