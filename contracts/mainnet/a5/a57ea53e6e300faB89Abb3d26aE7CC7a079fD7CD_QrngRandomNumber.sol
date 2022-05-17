@@ -1,0 +1,450 @@
+//SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
+import "./Ownable.sol";
+import "./IQrngRandomNumber.sol";
+
+/// @title Random Number contract that uses Airnode RRP to receive QRNG services
+contract QrngRandomNumber is RrpRequesterV0, Ownable, IQrngRandomNumber {
+    event RequestedUint256(bytes32 indexed requestId);
+    event ReceivedUint256(bytes32 indexed requestId, uint256 response);
+    event RequestedUint256Array(bytes32 indexed requestId, uint256 size);
+    event ReceivedUint256Array(bytes32 indexed requestId, uint256[] response);
+
+    address public airnode;
+    bytes32 public endpointIdUint256;
+    bytes32 public endpointIdUint256Array;
+    address public sponsorWallet;
+
+    mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
+    mapping(address => bool) public whitelisted;
+
+    mapping(bytes32 => uint256) private receivedNumber;
+    mapping(bytes32 => uint256[]) private receivedNumbers;
+
+    modifier onlyWhitelisted() {
+        require(whitelisted[msg.sender], "Not allowed");
+        _;
+    }
+
+    /// @dev RrpRequester sponsors itself, meaning that it can make requests
+    /// that will be fulfilled by its sponsor wallet. See the Airnode protocol
+    /// docs about sponsorship for more information.
+    /// @param _airnodeRrp Airnode RRP contract address
+    constructor(address _airnodeRrp) RrpRequesterV0(_airnodeRrp) {
+        whitelisted[owner()] = true;
+    }
+
+    /// @notice Sets parameters used in requesting QRNG services
+    /// @param _airnode Airnode address
+    /// @param _endpointIdUint256 Endpoint ID used to request a `uint256`
+    /// @param _endpointIdUint256Array Endpoint ID used to request a `uint256[]`
+    /// @param _sponsorWallet Sponsor wallet address
+    function setRequestParameters(
+        address _airnode,
+        bytes32 _endpointIdUint256,
+        bytes32 _endpointIdUint256Array,
+        address _sponsorWallet
+    ) external onlyOwner {
+        airnode = _airnode;
+        endpointIdUint256 = _endpointIdUint256;
+        endpointIdUint256Array = _endpointIdUint256Array;
+        sponsorWallet = _sponsorWallet;
+    }
+
+    /// @notice Requests a `uint256`
+    function makeRequestUint256() external onlyWhitelisted {
+        bytes32 requestId = airnodeRrp.makeFullRequest(
+            airnode,
+            endpointIdUint256,
+            address(this),
+            sponsorWallet,
+            address(this),
+            this.fulfillUint256.selector,
+            ""
+        );
+        expectingRequestWithIdToBeFulfilled[requestId] = true;
+        emit RequestedUint256(requestId);
+    }
+
+    /// @notice Called by the Airnode through the AirnodeRrp contract to
+    /// fulfill the request
+    /// @dev Note the `onlyAirnodeRrp` modifier. You should only accept RRP
+    /// fulfillments from this protocol contract. Also note that only
+    /// fulfillments for the requests made by this contract are accepted, and
+    /// a request cannot be responded to multiple times.
+    /// @param requestId Request ID
+    /// @param data ABI-encoded response
+    function fulfillUint256(bytes32 requestId, bytes calldata data)
+        external
+        onlyAirnodeRrp
+    {
+        require(
+            expectingRequestWithIdToBeFulfilled[requestId],
+            "Request ID not known"
+        );
+        expectingRequestWithIdToBeFulfilled[requestId] = false;
+        uint256 qrngUint256 = abi.decode(data, (uint256));
+        receivedNumber[requestId] = qrngUint256;
+        emit ReceivedUint256(requestId, qrngUint256);
+    }
+
+    /// @notice Requests a `uint256[]`
+    /// @param size Size of the requested array
+    function makeRequestUint256Array(uint256 size) external onlyWhitelisted {
+        bytes32 requestId = airnodeRrp.makeFullRequest(
+            airnode,
+            endpointIdUint256Array,
+            address(this),
+            sponsorWallet,
+            address(this),
+            this.fulfillUint256Array.selector,
+            // Using Airnode ABI to encode the parameters
+            abi.encode(bytes32("1u"), bytes32("size"), size)
+        );
+        expectingRequestWithIdToBeFulfilled[requestId] = true;
+        emit RequestedUint256Array(requestId, size);
+    }
+
+    /// @notice Called by the Airnode through the AirnodeRrp contract to
+    /// fulfill the request
+    /// @param requestId Request ID
+    /// @param data ABI-encoded response
+    function fulfillUint256Array(bytes32 requestId, bytes calldata data)
+        external
+        onlyAirnodeRrp
+    {
+        require(
+            expectingRequestWithIdToBeFulfilled[requestId],
+            "Request ID not known"
+        );
+        expectingRequestWithIdToBeFulfilled[requestId] = false;
+        uint256[] memory qrngUint256Array = abi.decode(data, (uint256[]));
+        receivedNumbers[requestId] = qrngUint256Array;
+        emit ReceivedUint256Array(requestId, qrngUint256Array);
+    }
+
+    /// @notice Whitelist an address that request/read random numbers
+    function whitelistUser(address callerAddress) external override onlyOwner {
+        require(callerAddress != address(0), "Invalid Address");
+        whitelisted[callerAddress] = true;
+    }
+
+    function getRandomNumber(bytes32 requestId)
+        external
+        view
+        override
+        onlyWhitelisted
+        returns (uint256)
+    {
+        require(whitelisted[msg.sender], "Permission denied");
+        return receivedNumber[requestId];
+    }
+
+    function getRandomNumbers(bytes32 requestId)
+        external
+        view
+        override
+        onlyWhitelisted
+        returns (uint256[] memory)
+    {
+        require(whitelisted[msg.sender], "Permission denied");
+        return receivedNumbers[requestId];
+    }
+}
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "../interfaces/IAirnodeRrpV0.sol";
+
+/// @title The contract to be inherited to make Airnode RRP requests
+contract RrpRequesterV0 {
+    IAirnodeRrpV0 public immutable airnodeRrp;
+
+    /// @dev Reverts if the caller is not the Airnode RRP contract.
+    /// Use it as a modifier for fulfill and error callback methods, but also
+    /// check `requestId`.
+    modifier onlyAirnodeRrp() {
+        require(msg.sender == address(airnodeRrp), "Caller not Airnode RRP");
+        _;
+    }
+
+    /// @dev Airnode RRP address is set at deployment and is immutable.
+    /// RrpRequester is made its own sponsor by default. RrpRequester can also
+    /// be sponsored by others and use these sponsorships while making
+    /// requests, i.e., using this default sponsorship is optional.
+    /// @param _airnodeRrp Airnode RRP contract address
+    constructor(address _airnodeRrp) {
+        airnodeRrp = IAirnodeRrpV0(_airnodeRrp);
+        IAirnodeRrpV0(_airnodeRrp).setSponsorshipStatus(address(this), true);
+    }
+}
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+contract Ownable {
+    address private _owner;
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    constructor() {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), _owner);
+    }
+
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    modifier onlyOwner() {
+        require(isOwner());
+        _;
+    }
+
+    function isOwner() public view returns (bool) {
+        return msg.sender == _owner;
+    }
+
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    function _transferOwnership(address newOwner) internal {
+        require(newOwner != address(0));
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+}
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+interface IQrngRandomNumber {
+    function getRandomNumber(bytes32 requestId) external view returns (uint256);
+
+    function getRandomNumbers(bytes32 requestId)
+        external
+        view
+        returns (uint256[] memory);
+
+    function whitelistUser(address user) external;
+}
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./IAuthorizationUtilsV0.sol";
+import "./ITemplateUtilsV0.sol";
+import "./IWithdrawalUtilsV0.sol";
+
+interface IAirnodeRrpV0 is
+    IAuthorizationUtilsV0,
+    ITemplateUtilsV0,
+    IWithdrawalUtilsV0
+{
+    event SetSponsorshipStatus(
+        address indexed sponsor,
+        address indexed requester,
+        bool sponsorshipStatus
+    );
+
+    event MadeTemplateRequest(
+        address indexed airnode,
+        bytes32 indexed requestId,
+        uint256 requesterRequestCount,
+        uint256 chainId,
+        address requester,
+        bytes32 templateId,
+        address sponsor,
+        address sponsorWallet,
+        address fulfillAddress,
+        bytes4 fulfillFunctionId,
+        bytes parameters
+    );
+
+    event MadeFullRequest(
+        address indexed airnode,
+        bytes32 indexed requestId,
+        uint256 requesterRequestCount,
+        uint256 chainId,
+        address requester,
+        bytes32 endpointId,
+        address sponsor,
+        address sponsorWallet,
+        address fulfillAddress,
+        bytes4 fulfillFunctionId,
+        bytes parameters
+    );
+
+    event FulfilledRequest(
+        address indexed airnode,
+        bytes32 indexed requestId,
+        bytes data
+    );
+
+    event FailedRequest(
+        address indexed airnode,
+        bytes32 indexed requestId,
+        string errorMessage
+    );
+
+    function setSponsorshipStatus(address requester, bool sponsorshipStatus)
+        external;
+
+    function makeTemplateRequest(
+        bytes32 templateId,
+        address sponsor,
+        address sponsorWallet,
+        address fulfillAddress,
+        bytes4 fulfillFunctionId,
+        bytes calldata parameters
+    ) external returns (bytes32 requestId);
+
+    function makeFullRequest(
+        address airnode,
+        bytes32 endpointId,
+        address sponsor,
+        address sponsorWallet,
+        address fulfillAddress,
+        bytes4 fulfillFunctionId,
+        bytes calldata parameters
+    ) external returns (bytes32 requestId);
+
+    function fulfill(
+        bytes32 requestId,
+        address airnode,
+        address fulfillAddress,
+        bytes4 fulfillFunctionId,
+        bytes calldata data,
+        bytes calldata signature
+    ) external returns (bool callSuccess, bytes memory callData);
+
+    function fail(
+        bytes32 requestId,
+        address airnode,
+        address fulfillAddress,
+        bytes4 fulfillFunctionId,
+        string calldata errorMessage
+    ) external;
+
+    function sponsorToRequesterToSponsorshipStatus(
+        address sponsor,
+        address requester
+    ) external view returns (bool sponsorshipStatus);
+
+    function requesterToRequestCountPlusOne(address requester)
+        external
+        view
+        returns (uint256 requestCountPlusOne);
+
+    function requestIsAwaitingFulfillment(bytes32 requestId)
+        external
+        view
+        returns (bool isAwaitingFulfillment);
+}
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IAuthorizationUtilsV0 {
+    function checkAuthorizationStatus(
+        address[] calldata authorizers,
+        address airnode,
+        bytes32 requestId,
+        bytes32 endpointId,
+        address sponsor,
+        address requester
+    ) external view returns (bool status);
+
+    function checkAuthorizationStatuses(
+        address[] calldata authorizers,
+        address airnode,
+        bytes32[] calldata requestIds,
+        bytes32[] calldata endpointIds,
+        address[] calldata sponsors,
+        address[] calldata requesters
+    ) external view returns (bool[] memory statuses);
+}
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface ITemplateUtilsV0 {
+    event CreatedTemplate(
+        bytes32 indexed templateId,
+        address airnode,
+        bytes32 endpointId,
+        bytes parameters
+    );
+
+    function createTemplate(
+        address airnode,
+        bytes32 endpointId,
+        bytes calldata parameters
+    ) external returns (bytes32 templateId);
+
+    function getTemplates(bytes32[] calldata templateIds)
+        external
+        view
+        returns (
+            address[] memory airnodes,
+            bytes32[] memory endpointIds,
+            bytes[] memory parameters
+        );
+
+    function templates(bytes32 templateId)
+        external
+        view
+        returns (
+            address airnode,
+            bytes32 endpointId,
+            bytes memory parameters
+        );
+}
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IWithdrawalUtilsV0 {
+    event RequestedWithdrawal(
+        address indexed airnode,
+        address indexed sponsor,
+        bytes32 indexed withdrawalRequestId,
+        address sponsorWallet
+    );
+
+    event FulfilledWithdrawal(
+        address indexed airnode,
+        address indexed sponsor,
+        bytes32 indexed withdrawalRequestId,
+        address sponsorWallet,
+        uint256 amount
+    );
+
+    function requestWithdrawal(address airnode, address sponsorWallet) external;
+
+    function fulfillWithdrawal(
+        bytes32 withdrawalRequestId,
+        address airnode,
+        address sponsor
+    ) external payable;
+
+    function sponsorToWithdrawalRequestCount(address sponsor)
+        external
+        view
+        returns (uint256 withdrawalRequestCount);
+}
