@@ -22840,3 +22840,11 @@
 {"address": "0xf4091dcad356e79c66813c567735137fd44bd2b9", "name": "WWRPI", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/27/2022"}
 {"address": "0x9aa0bcb62cb3c339e163a675db501da6a440a174", "name": "WWRI", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 3, "settings": "", "date": "5/27/2022"}
 {"address": "0xee9c56e6464515ce3c856fb24790e56daf0b1829", "name": "EkinVaultV1", "compiler": "0.8.14", "balance": "0 FTM", "txcount": 3, "settings": "", "date": "5/27/2022"}
+{"address": "0x4A8C1ad6Ae6EDc8A96bff5745fB6de64A5e43260", "name": "YamaBridge", "compiler": "0.8.13", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/29/2022"}
+{"address": "0x10Fbf55b0d7a7Caa26aDf148DCCA8Aa040B83CAA", "name": "LarvaANT", "compiler": "0.8.4", "balance": "0.016 FTM", "txcount": 3, "settings": "", "date": "5/29/2022"}
+{"address": "0x1c570bDFC679B3E51140920336853CDB81b41Da1", "name": "SoldierANT", "compiler": "0.8.4", "balance": "0 FTM", "txcount": 3, "settings": "", "date": "5/29/2022"}
+{"address": "0xe4E65A70528AF7957407bba903740eD369a30ABF", "name": "FTMStakingV1_1", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/29/2022"}
+{"address": "0x8aDFd9486AbB09EA3B8Be9a3244A3f2a8bd25d35", "name": "FTMStaking", "compiler": "0.8.7", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/29/2022"}
+{"address": "0xd274565e124141251e373e4f8db3af4c1f6d652a", "name": "Treasury", "compiler": "0.6.12", "balance": "0 FTM", "txcount": 2, "settings": "", "date": "5/29/2022"}
+{"address": "0x533974ece0a34fecd34eebae3f6dd48352cf04e3", "name": "EkinVaultV1", "compiler": "0.8.14", "balance": "0 FTM", "txcount": 1, "settings": "", "date": "5/29/2022"}
+{"address": "0xddf9402cD93aa87c3C1999b021c193DF0BfaEBE6", "name": "Tomb", "compiler": "0.6.12", "balance": "0 FTM", "txcount": 17, "settings": "", "date": "5/29/2022"}
